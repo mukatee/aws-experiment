@@ -28,7 +28,9 @@ DB_PW = os.environ['DB_USER_PW']
 #getenv handles missing values with default rather than exception
 S3_ENDPOINT_URL = os.getenv('S3_ENDPOINT_URL', None)
 S3_PREFIX = "logs1/"
+#this empty prefix is for local testing, since min.io does not seem to have good ui support for hierarchies
 S3_PREFIX = ""
+BUCKET_NAME = os.environ['BUCKET_NAME']
 
 class DBWriter():
     def __init__(self):
@@ -161,16 +163,15 @@ class DBWriter():
         #https://stackoverflow.com/questions/32635785/how-do-i-list-directory-contents-of-an-s3-bucket-using-python-and-boto3
         #it shows max 1000 items, can also handle that with file paths (prefix)
         partial_list = s3.list_objects_v2(
-            Bucket = 'discord-logs',
+            Bucket = BUCKET_NAME,
             Prefix = S3_PREFIX)
-    #    Prefix = 'discord-logs1/')
         logging.info(f"loaded object list:{partial_list}")
         obj_list = partial_list['Contents']
         obj_list = [obj["Key"] for obj in obj_list]
         obj_list.sort()
         latest_file = obj_list[-1]
         logging.info(f"Processing file:{latest_file}")
-        obj = s3.get_object(Bucket = 'discord-logs', Key = latest_file)
+        obj = s3.get_object(Bucket = BUCKET_NAME, Key = latest_file)
         logging.info("got file from S3")
         file_data = obj['Body'].read().decode('utf-8')
         fileobj = StringIO(file_data)
